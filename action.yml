@@ -1,0 +1,69 @@
+name: "synapt-eval PR Gate"
+description: "Run eval regression gate and post report card to PR"
+branding:
+  icon: "check-circle"
+  color: "green"
+
+inputs:
+  results-path:
+    description: "Path to eval results JSON file"
+    required: true
+  baseline-path:
+    description: "Path to baseline results JSON for regression detection"
+    required: false
+    default: ""
+  threshold:
+    description: "Regression threshold (default: 0.05)"
+    required: false
+    default: "0.05"
+  fail-on:
+    description: "Severity level that fails the workflow: error, warning, or none (default: error)"
+    required: false
+    default: "error"
+  comment:
+    description: "Post/update a report card comment on the PR (default: true)"
+    required: false
+    default: "true"
+  trending-path:
+    description: "Path to trending history directory for storing run data"
+    required: false
+    default: ""
+  python-version:
+    description: "Python version to use (default: 3.12)"
+    required: false
+    default: "3.12"
+
+outputs:
+  passed:
+    description: "Whether the PR gate passed (true/false)"
+    value: ${{ steps.gate.outputs.passed }}
+  report-json:
+    description: "Path to the report card JSON file"
+    value: ${{ steps.gate.outputs.report-json }}
+  report-markdown:
+    description: "Report card as markdown string"
+    value: ${{ steps.gate.outputs.report-markdown }}
+
+runs:
+  using: "composite"
+  steps:
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: ${{ inputs.python-version }}
+
+    - name: Install synapt-eval
+      shell: bash
+      run: pip install synapt-eval
+
+    - name: Run PR gate
+      id: gate
+      shell: bash
+      env:
+        INPUT_RESULTS_PATH: ${{ inputs.results-path }}
+        INPUT_BASELINE_PATH: ${{ inputs.baseline-path }}
+        INPUT_THRESHOLD: ${{ inputs.threshold }}
+        INPUT_FAIL_ON: ${{ inputs.fail-on }}
+        INPUT_COMMENT: ${{ inputs.comment }}
+        INPUT_TRENDING_PATH: ${{ inputs.trending-path }}
+      run: python -m synapt_eval.actions.pr_gate
