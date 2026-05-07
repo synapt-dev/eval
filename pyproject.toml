@@ -33,6 +33,9 @@ openai = ["openai>=1.0"]
 anthropic = ["anthropic>=0.20"]
 judges = ["openai>=1.0", "anthropic>=0.20"]
 
+[project.scripts]
+synapt-eval = "synapt_eval.cli:cli_entry"
+
 [project.urls]
 Homepage = "https://github.com/synapt-dev/eval"
 Repository = "https://github.com/synapt-dev/eval"
