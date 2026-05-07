@@ -53,10 +53,12 @@ class JudgingReviewer(Reviewer):
             reasoning=response.reasoning,
         )
 
+        score = max(0.0, min(1.0, response.score)) if response.score is not None else None
+
         return Verdict(
             passed=response.passed,
             reasoning=response.reasoning,
             severity=self._severity if not response.passed else SEVERITY_INFO,
             checks=[check],
-            score=response.score,
+            score=score,
         )
