@@ -341,14 +341,21 @@ class TestSuggestionEngine:
     def test_register_and_evaluate(self):
         engine = SuggestionEngine()
         engine.register(LowPrecisionRule(threshold=0.7))
-        suggestions = engine.evaluate(_result(p5=0.5))
+        suggestions = engine.evaluate(_result(category="retrieval", p5=0.5))
         assert len(suggestions) == 1
+
+    def test_category_scoping_skips_wrong_category(self):
+        engine = SuggestionEngine()
+        engine.register(LowPrecisionRule(threshold=0.7))
+        suggestions = engine.evaluate(_result(category="generation", p5=0.5))
+        assert len(suggestions) == 0
 
     def test_ordered_by_severity(self):
         engine = SuggestionEngine()
         engine.register(LowPrecisionRule(threshold=0.9))
         engine.register(HighNoResultsRule(threshold=0.0))
         result = _result(
+            category="retrieval",
             p5=0.5,
             per_fixture=[_per_fixture("f1", 0.0), _per_fixture("f2", 0.8)],
         )
@@ -363,10 +370,10 @@ class TestSuggestionEngine:
     def test_evaluate_all(self):
         engine = SuggestionEngine()
         engine.register(LowPrecisionRule(threshold=0.7))
-        results = [_result("a", p5=0.5), _result("b", p5=0.9)]
+        results = [_result("retrieval", p5=0.5), _result("retrieval", p5=0.9)]
         suggestions = engine.evaluate_all(results)
         assert len(suggestions) == 1
-        assert suggestions[0].category == "a"
+        assert suggestions[0].category == "retrieval"
 
     def test_empty_engine(self):
         engine = SuggestionEngine()
@@ -505,7 +512,7 @@ class TestIntegration:
         assert "low_precision" in rule_names
         assert "low_recall" in rule_names
         assert "high_no_results" in rule_names
-        assert "hallucination_signal" in rule_names
+        assert "hallucination_signal" not in rule_names
         assert "verdict_failure" in rule_names
         assert "regression" in rule_names
         assert suggestions[0].severity.weight >= suggestions[-1].severity.weight

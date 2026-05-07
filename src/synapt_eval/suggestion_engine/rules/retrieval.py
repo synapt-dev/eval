@@ -12,6 +12,8 @@ from synapt_eval.types import EvalResult
 class LowPrecisionRule:
     """Flags when P@5 drops below a configurable threshold."""
 
+    categories = {"retrieval"}
+
     def __init__(self, threshold: float = 0.7) -> None:
         self._threshold = threshold
 
@@ -43,6 +45,8 @@ class LowPrecisionRule:
 class LowRecallRule:
     """Flags when R@10 drops below a configurable threshold."""
 
+    categories = {"retrieval"}
+
     def __init__(self, threshold: float = 0.6) -> None:
         self._threshold = threshold
 
@@ -73,6 +77,8 @@ class LowRecallRule:
 
 class HighNoResultsRule:
     """Flags when too many fixtures return zero retrieval results."""
+
+    categories = {"retrieval"}
 
     def __init__(self, threshold: float = 0.1) -> None:
         self._threshold = threshold

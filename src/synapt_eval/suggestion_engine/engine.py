@@ -36,6 +36,9 @@ class SuggestionEngine:
         """Run all registered rules and return suggestions ordered by severity."""
         suggestions: list[Suggestion] = []
         for rule in self._rules:
+            categories = getattr(rule, "categories", None)
+            if categories and result.category not in categories:
+                continue
             suggestions.extend(rule.evaluate(result, verdicts, context))
         suggestions.sort(key=lambda s: s.severity.weight, reverse=True)
         return suggestions

@@ -12,6 +12,8 @@ from synapt_eval.types import EvalResult
 class LowSuccessRateRule:
     """Flags when generation success rate drops below threshold."""
 
+    categories = {"generation"}
+
     def __init__(self, threshold: float = 0.8) -> None:
         self._threshold = threshold
 
@@ -44,6 +46,8 @@ class HallucinationSignalRule:
     Scans verdicts for judge checks with low scores, which may
     indicate the generation fabricated content not grounded in context.
     """
+
+    categories = {"generation"}
 
     def __init__(self, score_threshold: float = 0.5) -> None:
         self._score_threshold = score_threshold
