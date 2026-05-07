@@ -2,6 +2,14 @@
 
 from synapt_eval.adapters.fixture_loader import FixtureLoader
 from synapt_eval.adapters.generation_adapter import GenerationAdapter
+from synapt_eval.adapters.judge_adapter import JudgeAdapter, JudgeRequest, JudgeResponse
 from synapt_eval.adapters.retrieval_adapter import RetrievalAdapter
 
-__all__ = ["FixtureLoader", "GenerationAdapter", "RetrievalAdapter"]
+__all__ = [
+    "FixtureLoader",
+    "GenerationAdapter",
+    "JudgeAdapter",
+    "JudgeRequest",
+    "JudgeResponse",
+    "RetrievalAdapter",
+]
