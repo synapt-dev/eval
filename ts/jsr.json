@@ -1,0 +1,8 @@
+{
+  "name": "@synapt/eval",
+  "version": "0.1.0",
+  "exports": "./src/mod.ts",
+  "publish": {
+    "include": ["src/**/*.ts", "LICENSE", "README.md"]
+  }
+}
