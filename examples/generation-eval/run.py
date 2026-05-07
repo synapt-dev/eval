@@ -21,7 +21,7 @@ from synapt_eval.suggestion_engine import SuggestionEngine
 FIXTURES = [
     {"id": "g1", "query": "What is Python?", "expected": ["programming", "language"]},
     {"id": "g2", "query": "Explain async/await", "expected": ["coroutine", "event loop"]},
-    {"id": "g3", "query": "What is a decorator?", "expected": ["function", "wrapper"]},
+    {"id": "g3", "query": "What is a decorator?", "expected": ["function", "wraps"]},
 ]
 
 
