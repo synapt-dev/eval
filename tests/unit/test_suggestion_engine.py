@@ -153,6 +153,32 @@ class TestHallucinationSignalRule:
         )
         assert len(suggestions) == 0
 
+    def test_none_score_ignored(self):
+        verdicts = [
+            Verdict(
+                passed=False,
+                reasoning="judge refused to score",
+                severity=SEVERITY_ERROR,
+                score=None,  # type: ignore[arg-type]
+            ),
+        ]
+        suggestions = HallucinationSignalRule().evaluate(_result(), verdicts=verdicts)
+        assert suggestions == []
+
+    def test_zero_score_flagged(self):
+        verdicts = [
+            Verdict(passed=False, reasoning="fabricated", severity=SEVERITY_ERROR, score=0.0),
+        ]
+        suggestions = HallucinationSignalRule().evaluate(_result(), verdicts=verdicts)
+        assert len(suggestions) == 1
+
+    def test_perfect_score_not_flagged(self):
+        verdicts = [
+            Verdict(passed=False, reasoning="other issue", severity=SEVERITY_WARNING, score=1.0),
+        ]
+        suggestions = HallucinationSignalRule().evaluate(_result(), verdicts=verdicts)
+        assert suggestions == []
+
 
 class TestVerdictFailureRule:
     def test_failed_checks(self):
@@ -193,6 +219,19 @@ class TestVerdictFailureRule:
     def test_no_verdicts(self):
         suggestions = VerdictFailureRule().evaluate(_result())
         assert len(suggestions) == 0
+
+    def test_failed_verdict_without_checks(self):
+        verdicts = [
+            Verdict(
+                passed=False,
+                reasoning="failed without granular checks",
+                severity=SEVERITY_ERROR,
+                checks=[],
+                score=0.0,
+            ),
+        ]
+        suggestions = VerdictFailureRule().evaluate(_result(), verdicts=verdicts)
+        assert suggestions == []
 
 
 # ── Cross-cutting rules ──
@@ -302,6 +341,21 @@ class TestMonotonicDegradationRule:
         )
         assert len(suggestions) == 0
 
+    def test_empty_history_list(self):
+        suggestions = MonotonicDegradationRule().evaluate(_result("r"), context={"history": []})
+        assert suggestions == []
+
+    def test_missing_metric_values_do_not_count_toward_consecutive_runs(self):
+        history = [
+            _result("r", p5=0.80),
+            _result("r", p5=0.75),
+        ]
+        current = _result("r", p5=0.70)
+        suggestions = MonotonicDegradationRule(metric="tau", consecutive=3).evaluate(
+            current, context={"history": history}
+        )
+        assert suggestions == []
+
 
 class TestStableLowRule:
     def test_consistently_low(self):
@@ -332,6 +386,23 @@ class TestStableLowRule:
         current = _result("r", p5=0.55)
         suggestions = StableLowRule(min_runs=3).evaluate(current, context={"history": history})
         assert len(suggestions) == 0
+
+    def test_empty_history_list(self):
+        current = _result("r", p5=0.55)
+        suggestions = StableLowRule(min_runs=3).evaluate(current, context={"history": []})
+        assert suggestions == []
+
+    def test_interleaved_other_categories_do_not_satisfy_min_runs(self):
+        history = [
+            _result("other", p5=0.40),
+            _result("r", p5=0.45),
+            _result("other", p5=0.42),
+        ]
+        current = _result("r", p5=0.44)
+        suggestions = StableLowRule(threshold=0.7, min_runs=3).evaluate(
+            current, context={"history": history}
+        )
+        assert suggestions == []
 
 
 # ── Engine tests ──

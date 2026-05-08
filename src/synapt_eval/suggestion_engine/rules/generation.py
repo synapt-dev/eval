@@ -61,7 +61,11 @@ class HallucinationSignalRule:
         if not verdicts:
             return []
 
-        flagged = [v for v in verdicts if not v.passed and v.score < self._score_threshold]
+        flagged = [
+            v
+            for v in verdicts
+            if not v.passed and v.score is not None and v.score < self._score_threshold
+        ]
 
         if not flagged:
             return []

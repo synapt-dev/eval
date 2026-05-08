@@ -157,6 +157,35 @@ class TestJudgingReviewer:
         assert judge.last_request.rubric == "accuracy"
         assert judge.last_request.context == {"k": "v"}
 
+    @pytest.mark.asyncio
+    async def test_refusal_reasoning_preserved(self):
+        judge = MockJudge(
+            JudgeResponse(
+                passed=False,
+                score=0.0,
+                reasoning="I cannot verify this from the provided context.",
+            )
+        )
+        reviewer = JudgingReviewer(judge)
+        verdict = await reviewer.review("answer", ["expected"], "query")
+        assert not verdict.passed
+        assert "cannot verify" in verdict.reasoning
+        assert verdict.checks[0].reasoning == verdict.reasoning
+
+    @pytest.mark.asyncio
+    async def test_high_score_clamped_at_bridge(self):
+        judge = MockJudge(JudgeResponse(passed=True, score=1.5, reasoning="overconfident"))
+        reviewer = JudgingReviewer(judge)
+        verdict = await reviewer.review("answer", ["expected"], "query")
+        assert verdict.score == 1.0
+
+    @pytest.mark.asyncio
+    async def test_negative_score_clamped_at_bridge(self):
+        judge = MockJudge(JudgeResponse(passed=False, score=-0.25, reasoning="undershot"))
+        reviewer = JudgingReviewer(judge)
+        verdict = await reviewer.review("answer", ["expected"], "query")
+        assert verdict.score == 0.0
+
 
 class TestJudgeInChain:
     @pytest.mark.asyncio

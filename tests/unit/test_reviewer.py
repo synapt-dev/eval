@@ -6,8 +6,10 @@ from synapt_eval.reviewer import (
     CheckResult,
     FrameworkReviewer,
     Predicate,
+    Reviewer,
     ReviewerChain,
     Severity,
+    Verdict,
 )
 from synapt_eval.reviewer.types import (
     SEVERITY_CRITICAL,
@@ -210,3 +212,153 @@ class TestSeverityOrdering:
     def test_frozen(self):
         with pytest.raises(AttributeError):
             SEVERITY_INFO.weight = 99.0  # type: ignore[misc]
+
+
+class CurrentStatePredicate(Predicate):
+    def check(self, output: str, expected: list[str], query: str) -> CheckResult:
+        current_query = "current" in query.lower()
+        history_leak = any(
+            token in output.lower() for token in ["used to", "previously", "last week"]
+        )
+        return CheckResult(
+            name="current_state",
+            passed=not (current_query and history_leak),
+            severity=SEVERITY_ERROR,
+            reasoning="Response should stay grounded in current state",
+        )
+
+
+class TemporalAnchorPredicate(Predicate):
+    def check(self, output: str, expected: list[str], query: str) -> CheckResult:
+        asked_for_today = "today" in query.lower()
+        stale_anchor = any(token in output.lower() for token in ["yesterday", "last week"])
+        return CheckResult(
+            name="temporal_anchor",
+            passed=not (asked_for_today and stale_anchor),
+            severity=SEVERITY_WARNING,
+            reasoning="Temporal reference should match the query anchor",
+        )
+
+
+class ExpectedFacetPredicate(Predicate):
+    def check(self, output: str, expected: list[str], query: str) -> CheckResult:
+        found = any(e.lower() in output.lower() for e in expected)
+        return CheckResult(
+            name="expected_facet",
+            passed=found,
+            severity=SEVERITY_INFO,
+            reasoning="Expected facet should be present in the response",
+        )
+
+
+class EmptyCheckReviewer(Reviewer):
+    async def review(self, output: str, expected: list[str], query: str, **kwargs) -> Verdict:
+        return Verdict(
+            passed=True,
+            reasoning="No signal",
+            severity=SEVERITY_INFO,
+            checks=[],
+            score=1.0,
+        )
+
+
+class CustomTaggedReviewer(Reviewer):
+    def __init__(self, name: str, passed: bool):
+        self._name = name
+        self._passed = passed
+
+    async def review(self, output: str, expected: list[str], query: str, **kwargs) -> Verdict:
+        severity = SEVERITY_INFO if self._passed else SEVERITY_ERROR
+        return Verdict(
+            passed=self._passed,
+            reasoning=f"{self._name} {'passed' if self._passed else 'failed'}",
+            severity=severity,
+            checks=[
+                CheckResult(
+                    name=self._name,
+                    passed=self._passed,
+                    severity=severity,
+                    reasoning="custom reviewer seam",
+                )
+            ],
+            score=1.0 if self._passed else 0.0,
+        )
+
+
+TEMPORAL_CASES = [
+    ("Current plan status today?", "The current status is green.", ["green"], set()),
+    (
+        "Current plan status today?",
+        "It used to be green last week.",
+        ["green"],
+        {"current_state", "temporal_anchor"},
+    ),
+    (
+        "What is the current deployment state?",
+        "Previously stable, now degraded.",
+        ["degraded"],
+        {"current_state"},
+    ),
+    ("What changed today?", "Today the rollout is paused.", ["paused"], set()),
+    (
+        "What changed today?",
+        "Yesterday it was paused and last week it was green.",
+        ["paused"],
+        {"temporal_anchor"},
+    ),
+    ("What is the current owner?", "The current owner is Atlas.", ["Atlas"], set()),
+    (
+        "What is the current owner?",
+        "It used to be Apollo.",
+        ["Apollo"],
+        {"current_state"},
+    ),
+    ("What changed today?", "Current state is stable with no delta.", ["stable"], set()),
+]
+
+
+class TestReviewerAntagonists:
+    @pytest.mark.asyncio
+    @pytest.mark.parametrize(("query", "output", "expected", "failed_names"), TEMPORAL_CASES)
+    async def test_oss_safe_temporal_like_cases(self, query, output, expected, failed_names):
+        reviewer = FrameworkReviewer(
+            [
+                CurrentStatePredicate(),
+                TemporalAnchorPredicate(),
+                ExpectedFacetPredicate(),
+            ]
+        )
+        verdict = await reviewer.review(output, expected, query)
+        observed = {check.name for check in verdict.checks if not check.passed}
+        assert verdict.passed is (len(failed_names) == 0)
+        assert observed == failed_names
+
+    @pytest.mark.asyncio
+    async def test_custom_reviewer_subclass_composes_cleanly(self):
+        chain = ReviewerChain(
+            [
+                FrameworkReviewer([AlwaysPassPredicate("framework_ok")]),
+                CustomTaggedReviewer("plugin_review", passed=False),
+            ],
+            strategy="strictest",
+        )
+        verdict = await chain.review("out", ["exp"], "q")
+        assert not verdict.passed
+        names = {check.name for check in verdict.checks}
+        assert names == {"framework_ok", "plugin_review"}
+
+    @pytest.mark.asyncio
+    async def test_majority_with_empty_check_reviewer_is_deterministic(self):
+        chain = ReviewerChain(
+            [
+                FrameworkReviewer([AlwaysPassPredicate("method_a")]),
+                FrameworkReviewer([AlwaysFailPredicate("method_b")]),
+                EmptyCheckReviewer(),
+            ],
+            strategy="majority",
+        )
+        verdict = await chain.review("out", ["exp"], "q")
+        assert verdict.passed
+        assert verdict.score == pytest.approx((1.0 + 0.0 + 1.0) / 3)
+        names = {check.name for check in verdict.checks}
+        assert names == {"method_a", "method_b"}
