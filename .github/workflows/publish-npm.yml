@@ -1,0 +1,56 @@
+name: Publish @synapt-dev/eval to npm
+
+on:
+  release:
+    types: [published]
+  workflow_dispatch:
+    # Manual re-trigger — needed because this workflow has no version-mismatch retry path:
+    # a `release` event fires it exactly once, and if npm's version hadn't moved yet at that
+    # point (e.g. a Python-only release, or this repo's own version-sync-deferred slices),
+    # there is no automatic second attempt once the npm version is later bumped.
+
+permissions:
+  contents: write
+  id-token: write
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ts
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version: "24"
+          registry-url: "https://registry.npmjs.org"
+
+      - run: npm ci
+
+      - run: npm run typecheck
+
+      - name: Check if this version is already published
+        id: check
+        run: |
+          VERSION=$(node -p "require('./package.json').version")
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+          if npm view "@synapt-dev/eval@$VERSION" version >/dev/null 2>&1; then
+            echo "already_published=true" >> "$GITHUB_OUTPUT"
+            echo "@synapt-dev/eval@$VERSION is already published to npm -- skipping publish (this is expected on every release where only the PyPI side bumped, not an error)."
+          else
+            echo "already_published=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - run: npm publish --provenance --access public
+        if: steps.check.outputs.already_published != 'true'
+
+      - name: Generate SBOM
+        run: npm sbom --omit=dev --sbom-format cyclonedx > sbom.cdx.json
+
+      - name: Upload SBOM to release
+        if: github.event_name == 'release'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh release upload ${{ github.event.release.tag_name }} sbom.cdx.json --clobber

@@ -1,5 +1,5 @@
 /**
- * BEFORE: Monolithic eval pattern (typical pre-@synapt/eval approach).
+ * BEFORE: Monolithic eval pattern (typical pre-@synapt-dev/eval approach).
  *
  * Problems with this pattern:
  * - Scoring, assertion, and reporting are interleaved

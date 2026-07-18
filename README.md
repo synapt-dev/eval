@@ -1,4 +1,4 @@
-# @synapt/eval
+# @synapt-dev/eval
 
 [![PyPI](https://img.shields.io/pypi/v/synapt-eval)](https://pypi.org/project/synapt-eval/)
 [![Python](https://img.shields.io/pypi/pyversions/synapt-eval)](https://pypi.org/project/synapt-eval/)
