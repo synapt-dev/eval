@@ -1,6 +1,6 @@
 # TypeScript Migration Guide
 
-Migrate from a monolithic eval script to composable `@synapt/eval` adapters.
+Migrate from a monolithic eval script to composable `@synapt-dev/eval` adapters.
 
 ## Before vs After
 
@@ -15,7 +15,7 @@ See the working examples in `ts/examples/migration/`:
 Extract your retrieval/generation call into an adapter class:
 
 ```typescript
-import type { RetrievalAdapter, RetrievalCandidate } from "@synapt/eval";
+import type { RetrievalAdapter, RetrievalCandidate } from "@synapt-dev/eval";
 
 class MyRetrievalAdapter implements RetrievalAdapter {
   async retrieve(query: string, k = 10): Promise<RetrievalCandidate[]> {
@@ -30,7 +30,7 @@ class MyRetrievalAdapter implements RetrievalAdapter {
 Replace hand-rolled precision/recall with standard primitives:
 
 ```typescript
-import { precisionAtK, recallAtK } from "@synapt/eval";
+import { precisionAtK, recallAtK } from "@synapt-dev/eval";
 
 const p5 = precisionAtK(retrievedIds, expectedIds, 5);
 const r10 = recallAtK(retrievedIds, expectedIds, 10);
@@ -41,7 +41,7 @@ const r10 = recallAtK(retrievedIds, expectedIds, 10);
 Replace `if (p5 < 0.5) failures.push(...)` with:
 
 ```typescript
-import { SuggestionEngine } from "@synapt/eval";
+import { SuggestionEngine } from "@synapt-dev/eval";
 
 const engine = SuggestionEngine.withDefaults();
 const suggestions = engine.evaluateAll(results);
@@ -53,7 +53,7 @@ const suggestions = engine.evaluateAll(results);
 Replace `console.log` with structured output:
 
 ```typescript
-import { composeReportCard, generateMarkdown } from "@synapt/eval";
+import { composeReportCard, generateMarkdown } from "@synapt-dev/eval";
 
 const card = composeReportCard({ results, suggestions });
 console.log(generateMarkdown(card));
@@ -75,7 +75,7 @@ Write results to JSON and use the GitHub Action:
 With adapters, adding generation eval is one new class:
 
 ```typescript
-import type { GenerationAdapter, GenerationOutput } from "@synapt/eval";
+import type { GenerationAdapter, GenerationOutput } from "@synapt-dev/eval";
 
 class MyGenerationAdapter implements GenerationAdapter {
   async generate(query: string, context?: unknown[]): Promise<GenerationOutput> {
@@ -90,7 +90,7 @@ class MyGenerationAdapter implements GenerationAdapter {
 Extend the suggestion engine with domain-specific rules:
 
 ```typescript
-import { SuggestionEngine, suggestionRule, SEVERITY_WARNING } from "@synapt/eval";
+import { SuggestionEngine, suggestionRule, SEVERITY_WARNING } from "@synapt-dev/eval";
 
 const latencyRule = suggestionRule({ name: "high_latency" })((result) => {
   // Custom rule for your domain

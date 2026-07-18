@@ -1,5 +1,5 @@
 {
-  "name": "@synapt/eval",
+  "name": "@synapt-dev/eval",
   "version": "0.1.0",
   "description": "Domain-agnostic eval framework for AI applications",
   "type": "module",

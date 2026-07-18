@@ -1,4 +1,4 @@
-name: Publish @synapt/eval to npm
+name: Publish @synapt-dev/eval to npm
 
 on:
   release:
@@ -36,9 +36,9 @@ jobs:
         run: |
           VERSION=$(node -p "require('./package.json').version")
           echo "version=$VERSION" >> "$GITHUB_OUTPUT"
-          if npm view "@synapt/eval@$VERSION" version >/dev/null 2>&1; then
+          if npm view "@synapt-dev/eval@$VERSION" version >/dev/null 2>&1; then
             echo "already_published=true" >> "$GITHUB_OUTPUT"
-            echo "@synapt/eval@$VERSION is already published to npm -- skipping publish (this is expected on every release where only the PyPI side bumped, not an error)."
+            echo "@synapt-dev/eval@$VERSION is already published to npm -- skipping publish (this is expected on every release where only the PyPI side bumped, not an error)."
           else
             echo "already_published=false" >> "$GITHUB_OUTPUT"
           fi

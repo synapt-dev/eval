@@ -2,7 +2,7 @@
 
 ## v0.1.0 (2026-05-07)
 
-Initial release of @synapt/eval.
+Initial release of @synapt-dev/eval.
 
 ### Components
 

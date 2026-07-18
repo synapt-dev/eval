@@ -1,5 +1,5 @@
 /**
- * AFTER: Composable eval with @synapt/eval.
+ * AFTER: Composable eval with @synapt-dev/eval.
  *
  * Benefits:
  * - Adapter pattern decouples eval from backend implementation
