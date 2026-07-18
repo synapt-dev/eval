@@ -2,6 +2,11 @@
   "name": "@synapt-dev/eval",
   "version": "0.1.0",
   "description": "Domain-agnostic eval framework for AI applications",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/synapt-dev/eval.git",
+    "directory": "ts"
+  },
   "type": "module",
   "exports": {
     ".": "./src/mod.ts"

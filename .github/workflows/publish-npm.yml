@@ -47,11 +47,10 @@ jobs:
         if: steps.check.outputs.already_published != 'true'
 
       - name: Generate SBOM
-        if: steps.check.outputs.already_published != 'true'
         run: npm sbom --omit=dev --sbom-format cyclonedx > sbom.cdx.json
 
       - name: Upload SBOM to release
-        if: steps.check.outputs.already_published != 'true' && github.event_name == 'release'
+        if: github.event_name == 'release'
         env:
           GH_TOKEN: ${{ github.token }}
         run: gh release upload ${{ github.event.release.tag_name }} sbom.cdx.json --clobber
