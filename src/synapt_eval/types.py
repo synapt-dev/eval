@@ -119,6 +119,9 @@ class EvalResult:
             category=data["category"],
             metrics=CategoryMetrics(**data["metrics"]),
             per_fixture=[PerFixtureResult(**row) for row in data.get("per_fixture", [])],
-            run_metrics=(RunMetrics.from_dict(data["run_metrics"])
-                         if data.get("run_metrics") is not None else None),
+            run_metrics=(
+                RunMetrics.from_dict(data["run_metrics"])
+                if data.get("run_metrics") is not None
+                else None
+            ),
         )

@@ -77,15 +77,23 @@ def _render_section(section: CategorySection) -> str:
             ("Runtime versions", ", ".join(run.runtime_versions) or None),
             ("Models", ", ".join(run.models) or None),
             ("Scope", run.scope),
-            ("Turns", run.turns), ("Tool calls", run.tool_calls),
-            ("Wall seconds", run.wall_seconds), ("Box minutes", run.box_minutes),
+            ("Turns", run.turns),
+            ("Tool calls", run.tool_calls),
+            ("Wall seconds", run.wall_seconds),
+            ("Box minutes", run.box_minutes),
         ]
         rows.extend((name, count.value) for name, count in vars(run.usage).items())
         for name, value in rows:
-            shown = "unavailable" if value is None else str(value).replace("|", "\\|").replace("\n", " ")
+            shown = (
+                "unavailable"
+                if value is None
+                else str(value).replace("|", "\\|").replace("\n", " ")
+            )
             lines.append(f"| {name} | {shown} |")
         for name, cost in (("Model cost USD", run.model_cost), ("Box cost USD", run.box_cost)):
-            shown = "unavailable" if cost.value_usd is None else f"{cost.value_usd:g} ({cost.status})"
+            shown = (
+                "unavailable" if cost.value_usd is None else f"{cost.value_usd:g} ({cost.status})"
+            )
             lines.append(f"| {name} | {shown} |")
         for name in ("counting_rule", "usage_basis", "wall_basis"):
             value = getattr(run, name)

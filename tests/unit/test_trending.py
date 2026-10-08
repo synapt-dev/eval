@@ -87,7 +87,7 @@ class TestTrendingStore:
         store = TrendingStore(tmp_path / "history")
         store.save(_card())
         history = store.load_history()
-        assert history[0]["schema_version"] == "1.0"
+        assert history[0]["schema_version"] == "1.1"
 
     def test_corrupted_file_skipped(self, tmp_path: Path):
         store = TrendingStore(tmp_path / "history")

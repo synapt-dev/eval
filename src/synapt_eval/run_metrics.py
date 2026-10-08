@@ -32,9 +32,14 @@ class TokenUsage:
 
     def __post_init__(self) -> None:
         prompt, read, write, output, total = (
-            count.value for count in (self.prompt_tokens, self.cached_prompt_tokens,
-                                     self.cache_write_tokens, self.completion_tokens,
-                                     self.total_tokens)
+            count.value
+            for count in (
+                self.prompt_tokens,
+                self.cached_prompt_tokens,
+                self.cache_write_tokens,
+                self.completion_tokens,
+                self.total_tokens,
+            )
         )
         if prompt is not None:
             if any(value is not None and value > prompt for value in (read, write)):
@@ -60,7 +65,9 @@ class RunCost:
         if self.status not in ("measured", "GUESS", "unavailable"):
             raise ValueError("cost status must be measured, GUESS or unavailable")
         if (self.value_usd is None) != (self.status == "unavailable"):
-            raise ValueError("unavailable cost must be null; measured or guessed cost needs a value")
+            raise ValueError(
+                "unavailable cost must be null; measured or guessed cost needs a value"
+            )
         _nonnegative("cost", self.value_usd)
         if self.value_usd is not None and not (self.source or (self.rates or {}).get("source")):
             raise ValueError("a reported or guessed cost needs its source")
@@ -99,9 +106,9 @@ class RunMetrics:
     @classmethod
     def from_dict(cls, data: dict[str, Any]) -> RunMetrics:
         values = dict(data)
-        values["usage"] = TokenUsage(**{
-            key: TokenCount(**value) for key, value in values.get("usage", {}).items()
-        })
+        values["usage"] = TokenUsage(
+            **{key: TokenCount(**value) for key, value in values.get("usage", {}).items()}
+        )
         for key in ("model_cost", "box_cost"):
             values[key] = RunCost(**values.get(key, {}))
         return cls(**values)
@@ -117,6 +124,12 @@ def _nonnegative(name: str, value: int | float | None, *, integer: bool = False)
     if value is None:
         return
     kinds = (int,) if integer else (int, float)
-    if (isinstance(value, bool) or not isinstance(value, kinds)
-            or (isinstance(value, float) and not math.isfinite(value)) or value < 0):
-        raise ValueError(f"{name} must be a finite nonnegative {'integer' if integer else 'number'}")
+    if (
+        isinstance(value, bool)
+        or not isinstance(value, kinds)
+        or (isinstance(value, float) and not math.isfinite(value))
+        or value < 0
+    ):
+        raise ValueError(
+            f"{name} must be a finite nonnegative {'integer' if integer else 'number'}"
+        )

@@ -3,7 +3,6 @@
 __version__ = "0.1.0"
 
 from synapt_eval.run_metrics import RunCost, RunMetrics, TokenCount, TokenUsage
-
 from synapt_eval.types import (
     CategoryMetrics,
     EdgeCaseFixture,

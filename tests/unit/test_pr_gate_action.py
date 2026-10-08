@@ -361,7 +361,7 @@ class TestRunAction:
         report_path = tmp_path / "synapt-eval-report.json"
         assert report_path.exists()
         data = json.loads(report_path.read_text(encoding="utf-8"))
-        assert data["schema_version"] == "1.0"
+        assert data["schema_version"] == "1.1"
         assert data["passed"] is True
 
     def test_trending_saved(self, tmp_path: Path):

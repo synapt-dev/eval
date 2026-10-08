@@ -41,8 +41,11 @@ def generate_json(report_card: ReportCard) -> dict[str, Any]:
                 },
                 "fixture_count": section.fixture_count,
                 "suggestions": [_serialize_suggestion(s) for s in section.suggestions],
-                **({"run_metrics": section.run_metrics.to_dict()}
-                   if section.run_metrics is not None else {}),
+                **(
+                    {"run_metrics": section.run_metrics.to_dict()}
+                    if section.run_metrics is not None
+                    else {}
+                ),
             }
             for section in report_card.sections
         ],
