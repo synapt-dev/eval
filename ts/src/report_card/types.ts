@@ -1,4 +1,4 @@
-import type { CategoryMetrics } from "../types.ts";
+import type { CategoryMetrics, RunMetrics } from "../types.ts";
 import type { Suggestion } from "../suggestion_engine/types.ts";
 
 export interface ReportCardHeader {
@@ -16,6 +16,7 @@ export interface CategorySection {
   metrics: CategoryMetrics;
   suggestions: Suggestion[];
   fixtureCount: number;
+  runMetrics?: RunMetrics;
 }
 
 export interface Delta {

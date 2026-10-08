@@ -2,8 +2,10 @@
 
 from __future__ import annotations
 
-from dataclasses import dataclass, field
+from dataclasses import asdict, dataclass, field
 from typing import Any, Generic, TypeVar
+
+from synapt_eval.run_metrics import RunMetrics
 
 T = TypeVar("T")
 
@@ -106,3 +108,20 @@ class EvalResult:
     category: str
     metrics: CategoryMetrics
     per_fixture: list[PerFixtureResult] = field(default_factory=list)
+    run_metrics: RunMetrics | None = None
+
+    def to_dict(self) -> dict[str, Any]:
+        return asdict(self)
+
+    @classmethod
+    def from_dict(cls, data: dict[str, Any]) -> EvalResult:
+        return cls(
+            category=data["category"],
+            metrics=CategoryMetrics(**data["metrics"]),
+            per_fixture=[PerFixtureResult(**row) for row in data.get("per_fixture", [])],
+            run_metrics=(
+                RunMetrics.from_dict(data["run_metrics"])
+                if data.get("run_metrics") is not None
+                else None
+            ),
+        )

@@ -19,7 +19,7 @@ from typing import Any
 from synapt_eval.report_card import compose_report_card, generate_json, generate_markdown
 from synapt_eval.runner.orchestration import GateResult, load_baseline, pr_gate
 from synapt_eval.trending.store import TrendingStore
-from synapt_eval.types import CategoryMetrics, EvalResult, PerFixtureResult
+from synapt_eval.types import CategoryMetrics, EvalResult, PerFixtureResult, RunMetrics
 
 COMMENT_MARKER = "<!-- synapt-eval-report -->"
 
@@ -112,6 +112,11 @@ def load_results(path: str) -> list[EvalResult]:
                 category=r["category"],
                 metrics=metrics,
                 per_fixture=per_fixture,
+                run_metrics=(
+                    RunMetrics.from_dict(r["run_metrics"])
+                    if r.get("run_metrics") is not None
+                    else None
+                ),
             )
         )
 

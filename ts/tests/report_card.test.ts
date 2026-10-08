@@ -136,3 +136,23 @@ describe("generateMarkdown", () => {
     assert.ok(md.includes("## Trending"));
   });
 });
+
+it("preserves run measurements and labels estimates", () => {
+  const unknown = { value: null, status: "unavailable" as const };
+  const result: EvalResult = {
+    ...makeResult("workflow", 1, 1, 1),
+    runMetrics: {
+      runtime: "example-runtime", models: ["example-model"], tool_calls: 0,
+      usage: { prompt_tokens: { value: 0, status: "measured" }, cached_prompt_tokens: unknown,
+        cache_write_tokens: unknown, completion_tokens: unknown, total_tokens: unknown },
+      model_cost: { value_usd: 0.005, status: "GUESS", source: "example rates" },
+      box_cost: { value_usd: null, status: "unavailable" },
+    },
+  };
+  const card = composeReportCard({ results: [result] });
+  assert.deepStrictEqual(JSON.parse(JSON.stringify(card.sections[0].runMetrics)), result.runMetrics);
+  const text = generateMarkdown(card);
+  assert.ok(text.includes("| Tool calls | 0 |"));
+  assert.ok(text.includes("| cache_write_tokens | unavailable |"));
+  assert.ok(text.includes("| Model cost USD | 0.005 (GUESS) |"));
+});

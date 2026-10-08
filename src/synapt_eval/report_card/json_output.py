@@ -7,7 +7,7 @@ from typing import Any
 
 from synapt_eval.report_card.types import ReportCard
 
-SCHEMA_VERSION = "1.0"
+SCHEMA_VERSION = "1.1"
 
 
 def generate_json(report_card: ReportCard) -> dict[str, Any]:
@@ -41,6 +41,11 @@ def generate_json(report_card: ReportCard) -> dict[str, Any]:
                 },
                 "fixture_count": section.fixture_count,
                 "suggestions": [_serialize_suggestion(s) for s in section.suggestions],
+                **(
+                    {"run_metrics": section.run_metrics.to_dict()}
+                    if section.run_metrics is not None
+                    else {}
+                ),
             }
             for section in report_card.sections
         ],
