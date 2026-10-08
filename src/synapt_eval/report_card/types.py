@@ -7,7 +7,7 @@ from typing import Any
 
 from synapt_eval.runner.orchestration import Delta
 from synapt_eval.suggestion_engine.types import Suggestion
-from synapt_eval.types import CategoryMetrics
+from synapt_eval.types import CategoryMetrics, RunMetrics
 
 
 @dataclass
@@ -31,6 +31,7 @@ class CategorySection:
     metrics: CategoryMetrics
     suggestions: list[Suggestion] = field(default_factory=list)
     fixture_count: int = 0
+    run_metrics: RunMetrics | None = None
 
 
 @dataclass

@@ -58,6 +58,7 @@ def compose_report_card(
             metrics=r.metrics,
             suggestions=suggestion_by_category.get(r.category, []),
             fixture_count=r.metrics.n,
+            run_metrics=r.run_metrics,
         )
         for r in results
     ]

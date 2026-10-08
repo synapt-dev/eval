@@ -67,6 +67,28 @@ function renderSection(section: CategorySection): string {
   lines.push(`| N | ${section.metrics.n} |`);
   lines.push("");
 
+  if (section.runMetrics) {
+    const run = section.runMetrics;
+    const shown = (value: unknown) => value == null ? "unavailable" : String(value).replaceAll("|", "\\|").replaceAll("\n", " ");
+    lines.push("### Run measurements", "", "| Measurement | Value |", "|---|---|");
+    const rows: [string, unknown][] = [
+      ["Runtime", run.runtime], ["Runtime versions", run.runtime_versions?.join(", ") || null],
+      ["Models", run.models?.join(", ") || null], ["Scope", run.scope],
+      ["Turns", run.turns], ["Tool calls", run.tool_calls],
+      ["Wall seconds", run.wall_seconds], ["Box minutes", run.box_minutes],
+      ...Object.entries(run.usage).map(([name, count]): [string, unknown] => [name, count.value]),
+    ];
+    for (const [name, value] of rows) lines.push(`| ${name} | ${shown(value)} |`);
+    for (const [name, cost] of [["Model cost USD", run.model_cost], ["Box cost USD", run.box_cost]] as const) {
+      const value = cost.value_usd == null ? "unavailable" : `${cost.value_usd} (${cost.status})`;
+      lines.push(`| ${name} | ${value} |`);
+    }
+    for (const name of ["counting_rule", "usage_basis", "wall_basis"] as const) {
+      if (run[name]) lines.push(`| ${name} | ${shown(run[name])} |`);
+    }
+    lines.push("");
+  }
+
   if (section.suggestions.length > 0) {
     lines.push("### Suggestions", "");
     for (const s of section.suggestions) {

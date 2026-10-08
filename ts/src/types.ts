@@ -69,4 +69,46 @@ export interface EvalResult {
   category: string;
   metrics: CategoryMetrics;
   perFixture?: PerFixtureResult[];
+  runMetrics?: RunMetrics;
+}
+
+/** Portable measurement keys match the JSON report schema. Prompt includes cache subsets. */
+export interface TokenCount {
+  value: number | null;
+  status: "measured" | "unavailable";
+}
+
+export interface TokenUsage {
+  prompt_tokens: TokenCount;
+  cached_prompt_tokens: TokenCount;
+  cache_write_tokens: TokenCount;
+  completion_tokens: TokenCount;
+  total_tokens: TokenCount;
+}
+
+export interface RunCost {
+  value_usd: number | null;
+  status: "measured" | "GUESS" | "unavailable";
+  source?: string | null;
+  reason?: string | null;
+  rates?: Record<string, unknown> | null;
+}
+
+export interface RunMetrics {
+  runtime?: string | null;
+  runtime_versions?: string[];
+  models?: string[];
+  usage: TokenUsage;
+  turns?: number | null;
+  tool_calls?: number | null;
+  wall_seconds?: number | null;
+  box_minutes?: number | null;
+  model_cost: RunCost;
+  box_cost: RunCost;
+  scope?: string | null;
+  start?: string | null;
+  end?: string | null;
+  counting_rule?: string | null;
+  usage_basis?: string | null;
+  wall_basis?: string | null;
 }

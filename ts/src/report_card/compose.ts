@@ -52,6 +52,7 @@ export function composeReportCard(options: ComposeOptions): ReportCard {
     metrics: r.metrics,
     suggestions: suggestionByCategory.get(r.category) ?? [],
     fixtureCount: r.metrics.n,
+    runMetrics: r.runMetrics,
   }));
 
   let deltas: Delta[] = [];

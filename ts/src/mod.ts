@@ -8,6 +8,10 @@ export type {
   EdgeCaseFixture,
   EdgeCaseResult,
   EvalResult,
+  RunMetrics,
+  RunCost,
+  TokenCount,
+  TokenUsage,
 } from "./types.ts";
 
 export { precisionAtK, recallAtK, kendallTau } from "./scoring/mod.ts";

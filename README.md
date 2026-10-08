@@ -44,6 +44,23 @@ print(generate_markdown(card))
 
 See [docs/quickstart.md](docs/quickstart.md) for a complete walkthrough and [examples/](examples/) for runnable code.
 
+## Run measurements
+
+An `EvalResult` can carry an optional `RunMetrics` block with runtime and model
+names, token classes, turns, tool calls, wall seconds, box minutes, and separate
+model and box costs. `RunMetrics.from_collector(data)` accepts normalized collector
+JSON; `EvalResult.to_dict()` and `EvalResult.from_dict(data)` preserve the typed block.
+
+Prompt tokens include cache reads and writes, which are subsets rather than extra
+tokens. A missing measurement stays `null` and `unavailable`; measured zero stays
+zero. Costs must name their source and retain `measured`, `GUESS`, or `unavailable`.
+The library makes no model calls, chooses no prices, and adds no costs automatically.
+
+Report-card JSON schema **1.1** adds `run_metrics` to a category section when supplied.
+Existing sections without run measurements retain their fields. Markdown displays
+the measurements, including unavailable values and labelled estimates. The block
+is scoped to its result; repeated blocks are not summed across categories.
+
 ## Architecture
 
 synapt-eval separates the **eval framework** (scoring, review, reporting) from **domain-specific adapters** (your retrieval backend, your generation pipeline, your fixtures).

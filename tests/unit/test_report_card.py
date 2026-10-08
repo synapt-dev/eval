@@ -243,7 +243,7 @@ class TestGenerateJson:
     def test_schema_version(self):
         card = compose_report_card([_result()])
         data = generate_json(card)
-        assert data["schema_version"] == "1.0"
+        assert data["schema_version"] == "1.1"
 
     def test_basic_structure(self):
         card = compose_report_card([_result()], run_id="R1", commit="abc")
@@ -319,7 +319,7 @@ class TestGenerateJson:
         card = compose_report_card([_result()])
         json_str = generate_json_string(card)
         parsed = json.loads(json_str)
-        assert parsed["schema_version"] == "1.0"
+        assert parsed["schema_version"] == "1.1"
 
     def test_config_preserved(self):
         card = compose_report_card([_result()], config={"model": "gpt-4o"})
@@ -368,7 +368,7 @@ class TestReportCardIntegration:
         assert "**FAILED**" in md
 
         data = generate_json(card)
-        assert data["schema_version"] == "1.0"
+        assert data["schema_version"] == "1.1"
         assert data["run_id"] == "integration-test"
         assert not data["passed"]
         assert len(data["sections"]) == 2
